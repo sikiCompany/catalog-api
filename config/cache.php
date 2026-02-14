@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // 'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_DRIVER', 'redis'),
 
     /*
     |--------------------------------------------------------------------------
@@ -72,10 +73,16 @@ return [
             ],
         ],
 
+        // 'redis' => [
+        //     'driver' => 'redis',
+        //     'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
+        //     'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+        // ],
+
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
-            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+            'connection' => 'cache',
+            'lock_connection' => 'default',
         ],
 
         'dynamodb' => [
@@ -112,6 +119,7 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
+    // 'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
+    'prefix' => env('CACHE_PREFIX', 'catalog_api'),
 
 ];
