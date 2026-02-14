@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('sku')->unique();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->string('category');
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->softDeletes(); 
             $table->timestamps();
+            
+            $table->index(['status', 'category']);
+            $table->index('price');
+            $table->index('created_at');
         });
     }
 
