@@ -20,7 +20,8 @@ class ProductValidationTest extends TestCase
     {
         $data = [
             'name' => 'Test Product',
-            'price' => 99.99,
+            // 'price' => 99.99,
+            'price' => 'Test',
             'category' => 'Test'
         ];
 
