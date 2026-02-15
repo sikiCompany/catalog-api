@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Product;
-use App\Jobs\SyncProductToElasticsearch;
+use App\Jobs\SyncProductElasticsearch;
 use App\Jobs\RemoveProductFromElasticsearch;
 use Illuminate\Support\Facades\Cache;
 
@@ -11,14 +11,14 @@ class ProductObserver
 {
     public function created(Product $product)
     {
-        dispatch(new SyncProductToElasticsearch($product));
+        dispatch(new SyncProductElasticsearch($product));
         
         Cache::tags(['products'])->flush();
     }
 
     public function updated(Product $product)
     {
-        dispatch(new SyncProductToElasticsearch($product));
+        dispatch(new SyncProductElasticsearch($product));
         
         Cache::forget('product_' . $product->id);
         Cache::tags(['products'])->flush();
@@ -34,6 +34,6 @@ class ProductObserver
 
     public function restored(Product $product)
     {
-        dispatch(new SyncProductToElasticsearch($product));
+        dispatch(new SyncProductElasticsearch($product));
     }
 }
