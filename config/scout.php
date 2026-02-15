@@ -207,4 +207,21 @@ return [
         'import_action' => env('TYPESENSE_IMPORT_ACTION', 'upsert'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Elasticsearch Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Here you may configure your Elasticsearch settings for Scout.
+    |
+    */
+
+    'elasticsearch' => [
+        'client' => [
+            'hosts' => [
+                env('ELASTICSEARCH_SCHEME', 'http').'://'.env('ELASTICSEARCH_HOST', 'localhost').':'.env('ELASTICSEARCH_PORT', 9200),
+            ],
+        ],
+    ],
+
 ];
