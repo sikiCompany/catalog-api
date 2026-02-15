@@ -7,23 +7,32 @@ use Illuminate\Support\Facades\Log;
 
 trait Cacheable
 {
-    /**
-     * Get cached data or store from callback
-     */
     protected function remember(string $key, $ttl, callable $callback)
     {
         try {
-            return Cache::tags(['products'])->remember($key, $ttl, $callback);
-        } catch (\Exception $e) {
-            Log::warning('Cache error', ['key' => $key, 'error' => $e->getMessage()]);
+            $store = Cache::getStore();
+
+            if ($store instanceof \Illuminate\Cache\TaggableStore) {
+                return Cache::tags(['products'])->remember($key, $ttl, $callback);
+            }
+
+            return Cache::remember($key, $ttl, $callback);
+
+        } catch (\Throwable $e) {
+            Log::warning('Cache error', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+
             return $callback();
         }
     }
 
+
     /**
      * Generate cache key for product
      */
-    protected function getProductCacheKey(int $id): string
+    protected function getProductCacheKey(string $id): string
     {
         return 'product_' . $id;
     }
@@ -41,10 +50,14 @@ trait Cacheable
     /**
      * Clear product cache
      */
-    protected function clearProductCache(int $id): void
+    protected function clearProductCache(string $id): void
     {
         Cache::forget($this->getProductCacheKey($id));
-        Cache::tags(['products'])->flush();
+        
+        // Flush tags only if supported
+        if (method_exists(Cache::getStore(), 'tags')) {
+            Cache::tags(['products'])->flush();
+        }
     }
 
     /**
