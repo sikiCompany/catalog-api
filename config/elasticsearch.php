@@ -12,6 +12,7 @@ return [
     'queue' => [
         'timeout' => env('SCOUT_QUEUE_TIMEOUT'),
     ],
+    'index' => env('ELASTICSEARCH_INDEX', 'products'),
     'indices' => [
         'mappings' => [
             'default' => [

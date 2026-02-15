@@ -26,10 +26,13 @@ class SearchApiTest extends TestCase
             'description' => 'Dell laptop for work'
         ]);
 
-        $response = $this->getJson('/api/search/products?q=Samsung');
+        $response = $this->getJson('/api/search/products?q=Samsung&page=1&per_page=10');
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
+        $response->assertStatus(200);
+
+        $response->assertJsonStructure([
+            'success',
+            'data' => [
                 'data' => [
                     '*' => [
                         'id',
@@ -40,8 +43,11 @@ class SearchApiTest extends TestCase
                         'category',
                         'status'
                     ]
-                ]
-            ]);
+                ],
+                'links',
+                'meta'
+            ]
+        ]);
     }
 
     /**
@@ -63,10 +69,10 @@ class SearchApiTest extends TestCase
   
         $response = $this->getJson('/api/search/products?category=Eletrônicos');
 
-        // $response->assertStatus(200);
+        $response->assertStatus(200);
         
         // Verifica se retornou dados
-        $data = $response->json('data');
+        $data = $response->json('data.data');
         $this->assertIsArray($data);
         $this->assertGreaterThan(0, count($data));
     }
@@ -82,17 +88,15 @@ class SearchApiTest extends TestCase
         Product::factory()->create(['price' => 1750]);
 
 
-        $response = $this->getJson('/api/products?min_price=113.16&max_price=750');
+        $response = $this->getJson('/api/search/products?min_price=100&max_price=750');
 
         $response->assertStatus(200);
-//        $collection = collect(json_decode($response->getContent(), true));
-//        $total = $collection->count();
 
-        $response->assertJsonCount(2, 'data');
-        $prices = collect($response->json()['data'])->pluck('price');
+        $response->assertJsonCount(2, 'data.data');
+        $prices = collect($response->json()['data']['data'])->pluck('price');
 
         $this->assertTrue($prices->contains(150));
-        $this->assertTrue($prices->contains(key: 750));
+        $this->assertTrue($prices->contains(750));
     }
 
     /**
@@ -107,7 +111,7 @@ class SearchApiTest extends TestCase
         $response->assertStatus(200);
         
         // Verifica se retornou dados
-        $data = $response->json('data');
+        $data = $response->json('data.data');
         $this->assertIsArray($data);
         $this->assertGreaterThan(0, count($data));
     }
@@ -134,12 +138,23 @@ class SearchApiTest extends TestCase
         $response = $this->getJson('/api/search/products?q=Smartphone&category=Eletrônicos&min_price=1000&status=active');
 
         $response->assertStatus(200);
-        
         // Verifica estrutura da resposta
         $response->assertJsonStructure([
-            'data',
-            'links',
-            'meta'
+            'success',
+            'data' => [
+                'data' => [
+                    '*' => [
+                        'id',
+                        'sku',
+                        'name',
+                        'price',
+                        'category',
+                        'status'
+                    ]
+                ],
+                'links',
+                'meta'
+            ]
         ]);
     }
 
@@ -157,7 +172,7 @@ class SearchApiTest extends TestCase
         $response->assertStatus(200);
         
         // Verifica se retornou dados
-        $data = $response->json('data');
+        $data = $response->json('data.data');
         $this->assertIsArray($data);
         $this->assertGreaterThan(0, count($data));
     }
@@ -176,7 +191,7 @@ class SearchApiTest extends TestCase
         $response->assertStatus(200);
         
         // Verifica se retornou dados
-        $data = $response->json('data');
+        $data = $response->json('data.data');
         $this->assertIsArray($data);
         $this->assertGreaterThan(0, count($data));
     }
@@ -192,12 +207,15 @@ class SearchApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'data',
-                'links',
-                'meta' => [
-                    'current_page',
-                    'total',
-                    'per_page'
+                'success',
+                'data' => [
+                    'data',
+                    'links',
+                    'meta' => [
+                        'current_page',
+                        'total',
+                        'per_page'
+                    ]
                 ]
             ]);
     }
@@ -285,18 +303,21 @@ class SearchApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
+                'success',
                 'data' => [
-                    '*' => [
-                        'id',
-                        'sku',
-                        'name',
-                        'price',
-                        'category',
-                        'status'
-                    ]
-                ],
-                'links',
-                'meta'
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'sku',
+                            'name',
+                            'price',
+                            'category',
+                            'status'
+                        ]
+                    ],
+                    'links',
+                    'meta'
+                ]
             ]);
     }
 
@@ -312,7 +333,7 @@ class SearchApiTest extends TestCase
         $response->assertStatus(200);
         
         // Verifica se não retorna mais que o limite
-        $this->assertLessThanOrEqual(100, count($response->json('data')));
+        $this->assertLessThanOrEqual(100, count($response->json('data.data')));;
     }
 
     /**

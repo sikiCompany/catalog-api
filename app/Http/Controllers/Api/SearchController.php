@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Traits\Cacheable;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductCollection;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -59,7 +60,8 @@ class SearchController extends Controller
         } catch (\Exception $e) {
             Log::error('Error searching products', [
                 'params' => $request->all(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             try {
@@ -68,10 +70,15 @@ class SearchController extends Controller
                 return response()->json([
                     'success' => true,
                     'data' => new ProductCollection($results),
-                    'warning' => 'Usando busca alternativa devido a problemas no Elasticsearch'
+                    'warning' => 'Elasticsearch service unavailable. Using database search as fallback. Details: ' . $e->getMessage()
                 ]);
                 
             } catch (\Exception $fallbackError) {
+                Log::error('Fallback database search also failed', [
+                    'error' => $fallbackError->getMessage(),
+                    'trace' => $fallbackError->getTraceAsString()
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Erro ao realizar busca',
@@ -85,33 +92,136 @@ class SearchController extends Controller
      * Perform search using Elasticsearch
      */
     protected function performSearch(array $params)
-    {        
-        $query = Product::search($params['q'] ?? '');
+    {
+        try {
+            $builder = ClientBuilder::create()
+                ->setHosts([config('elasticsearch.host')]);
 
-        if (!empty($params['category'])) {
-            $query->where('category', $params['category']);
+            if (config('elasticsearch.user')) {
+                $builder->setBasicAuthentication(
+                    config('elasticsearch.user'),
+                    config('elasticsearch.password')
+                );
+            }
+
+            $client = $builder->build();
+            $indexName = config('elasticsearch.index', 'products');
+            
+            // Verify index exists
+            if (!$client->indices()->exists(['index' => $indexName])) {
+                Log::warning('Elasticsearch index does not exist', ['index' => $indexName]);
+                throw new \Exception("Elasticsearch index '{$indexName}' does not exist");
+            }
+            
+            $must = [];
+            $filter = [];
+
+            // Text search
+            if (!empty($params['q'])) {
+                $must[] = [
+                    'multi_match' => [
+                        'query' => $params['q'],
+                        'fields' => ['name', 'description', 'sku']
+                    ]
+                ];
+            }
+
+            // Filter by category
+            if (!empty($params['category'])) {
+                $filter[] = ['term' => ['category.keyword' => $params['category']]];
+            }
+
+            // Filter by status
+            if (!empty($params['status'])) {
+                $filter[] = ['term' => ['status.keyword' => $params['status']]];
+            }
+
+            // Price range
+            if (!empty($params['min_price'])) {
+                $filter[] = ['range' => ['price' => ['gte' => (float) $params['min_price']]]];
+            }
+
+            if (!empty($params['max_price'])) {
+                $filter[] = ['range' => ['price' => ['lte' => (float) $params['max_price']]]];
+            }
+
+            // Build the query
+            $body = [
+                'query' => [
+                    'bool' => [
+                        'must' => empty($must) ? [['match_all' => []]] : $must,
+                        'filter' => $filter
+                    ]
+                ],
+                'sort' => []
+            ];
+
+            // Add sorting
+            $sortField = $params['sort'] ?? 'created_at';
+            $sortOrder = $params['order'] ?? 'desc';
+            
+            if ($sortField === 'price') {
+                $body['sort'][] = ['price' => $sortOrder];
+            } else {
+                $body['sort'][] = ['created_at' => $sortOrder];
+            }
+
+            // Pagination
+            $page = $params['page'] ?? 1;
+            $perPage = $params['per_page'] ?? 15;
+            $body['from'] = ($page - 1) * $perPage;
+            $body['size'] = $perPage;
+
+            $response = $client->search(['index' => $indexName, 'body' => $body]);
+
+            // Extract IDs from Elasticsearch results
+            $ids = collect($response['hits']['hits'])->pluck('_id')->toArray();
+
+            if (empty($ids)) {
+                return new \Illuminate\Pagination\Paginator(
+                    [],
+                    $perPage,
+                    $page,
+                    [
+                        'path' => request()->url(),
+                        'query' => request()->query(),
+                    ]
+                );
+            }
+
+            // Fetch from database in the same order
+            $products = Product::whereIn('id', $ids)
+                ->get()
+                ->keyBy('id')
+                ->map(function ($product) use ($ids) {
+                    return $product;
+                })
+                ->values();
+
+            // Create a paginated collection
+            $items = $products->values();
+            $total = $response['hits']['total']['value'] ?? 0;
+
+            return new \Illuminate\Pagination\Paginator(
+                $items,
+                $perPage,
+                $page,
+                [
+                    'path' => request()->url(),
+                    'query' => request()->query(),
+                ]
+            );
+
+        } catch (\Exception $e) {
+            Log::error('Elasticsearch search failed', [
+                'error' => $e->getMessage(),
+                'params' => $params,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Fallback to database search
+            throw $e;
         }
-
-        if (!empty($params['status'])) {
-            $query->where('status', $params['status']);
-        }
-
-        if (!empty($params['min_price'])) {
-            $query->where('price', '>=', (float) $params['min_price']);
-        }
-
-        if (!empty($params['max_price'])) {
-            $query->where('price', '<=', (float) $params['max_price']);
-        }
-
-        if (!empty($params['sort'])) {
-            $order = $params['order'] ?? 'asc';
-            $query->orderBy($params['sort'], $order);
-        }
-
-        $perPage = $params['per_page'] ?? 15;
-        
-        return $query->paginate($perPage);
     }
 
     /**

@@ -872,7 +872,7 @@ Route::middleware('throttle:60,1')->group(function () {
 
 ### Curto Prazo
 
-- [ ] Implementar testes Feature completos
+- [X] Implementar testes Feature completos
 - [ ] Adicionar autenticação (Laravel Sanctum)
 - [ ] Implementar rate limiting
 - [ ] Adicionar validação de SKU duplicado em updates
@@ -880,13 +880,13 @@ Route::middleware('throttle:60,1')->group(function () {
 
 ### Médio Prazo
 
-- [ ] CI/CD com GitHub Actions
+- [X] CI/CD com GitHub Actions
   - Lint (Laravel Pint)
   - Testes automatizados
   - Deploy automático
-- [ ] Processamento de imagens (resize, compress)
+- [X] Processamento de imagens (resize, compress)
 - [ ] Versionamento da API (v1, v2)
-- [ ] Documentação OpenAPI/Swagger
+- [X] Documentação OpenAPI/Swagger
 - [ ] Integração com SQS para eventos
 
 ### Longo Prazo
