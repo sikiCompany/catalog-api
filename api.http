@@ -2,10 +2,10 @@
 GET http://localhost/api/products?page=1&per_page=10
 
 ### Listar com filtros
-GET http://localhost/api/products?category=Eletrônicos&status=active&min_price=10&max_price=1000
+GET http://localhost/api/products?category=Eletrônicos&status=active&min_price=713.16&max_price=1000
 
 ### Buscar produtos (Elasticsearch)
-GET http://localhost/api/search/products?q=smartphone&category=Eletrônicos&min_price=100
+GET http://localhost/api/search/products?q=smartphone&category=Eletrônicos&min_price=10
 
 ### Criar produto
 POST http://localhost/api/products
@@ -40,11 +40,3 @@ POST http://localhost/api/products/1/restore
 
 ### Upload de imagem (AWS S3)
 POST http://localhost/api/products/1/image
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="image"; filename="product.jpg"
-Content-Type: image/jpeg
-
-< ./test.jpg
---boundary--

@@ -58,12 +58,12 @@ echo -e "${YELLOW}Criando índice no Elasticsearch...${NC}"
 docker-compose exec app php artisan elastic:create-index
 
 # Instalar dependências NPM (se necessário)
-echo -e "${YELLOW}Instalando dependências NPM...${NC}"
-docker-compose exec app npm install
+# echo -e "${YELLOW}Instalando dependências NPM...${NC}"
+# docker-compose exec app npm install
 
 # Compilar assets (se necessário)
-echo -e "${YELLOW}Compilando assets...${NC}"
-docker-compose exec app npm run dev
+# echo -e "${YELLOW}Compilando assets...${NC}"
+# docker-compose exec app npm run dev
 
 # Verificar status dos containers
 echo -e "${GREEN}Setup concluído! Status dos containers:${NC}"
