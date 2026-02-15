@@ -14,30 +14,73 @@ class RemoveProductFromElasticsearch implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $productId;
+    /**
+     * The product ID.
+     *
+     * @var string
+     */
+    public $productId;
 
-    public function __construct($productId)
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 3;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 60;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(string $productId)
     {
         $this->productId = $productId;
     }
 
-    public function handle()
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
     {
         try {
-            $product = (new Product())->newQuery()
-                ->where('id', $this->productId)
-                ->withTrashed()
-                ->first();
+            $product = Product::withTrashed()->find($this->productId);
             
             if ($product) {
                 $product->unsearchable();
-                Log::info('Produto removido do Elasticsearch', ['id' => $this->productId]);
+                
+                Log::info('Product removed from Elasticsearch', [
+                    'product_id' => $this->productId
+                ]);
+            } else {
+                Log::warning('Product not found for Elasticsearch removal', [
+                    'product_id' => $this->productId
+                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Erro ao remover produto do Elasticsearch', [
-                'id' => $this->productId,
-                'error' => $e->getMessage()
+            Log::error('Failed to remove product from Elasticsearch', [
+                'product_id' => $this->productId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            
+            throw $e;
         }
+    }
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('Product Elasticsearch removal job failed', [
+            'product_id' => $this->productId,
+            'error' => $exception->getMessage()
+        ]);
     }
 }
