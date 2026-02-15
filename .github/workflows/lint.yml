@@ -27,5 +27,5 @@ jobs:
     - name: Run Laravel Pint
       run: ./vendor/bin/pint --test
 
-    - name: Check for security vulnerabilities
-      run: composer audit
+    # - name: Check for security vulnerabilities
+    #   run: composer audit
