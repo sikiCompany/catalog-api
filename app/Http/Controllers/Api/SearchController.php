@@ -85,7 +85,7 @@ class SearchController extends Controller
      * Perform search using Elasticsearch
      */
     protected function performSearch(array $params)
-    {
+    {        
         $query = Product::search($params['q'] ?? '');
 
         if (!empty($params['category'])) {
