@@ -123,7 +123,7 @@ class ProductController extends Controller
      * 
      * @GET /api/products/{id}
      */
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
 
@@ -237,7 +237,7 @@ class ProductController extends Controller
      * 
      * @POST /api/products/{id}/restore
      */
-    public function restore(int $id): JsonResponse
+    public function restore(string $id): JsonResponse
     {
         try {
             $product = $this->productService->restore($id);
@@ -275,11 +275,11 @@ class ProductController extends Controller
      * 
      * @POST /api/products/{id}/image
      */
-    public function uploadImage(Request $request, int $id): JsonResponse
+    public function uploadImage(Request $request, string $id): JsonResponse
     {
         try {
             $request->validate([
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+                'image' => 'required|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
             $product = Product::withTrashed()->findOrFail($id);

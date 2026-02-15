@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Services\StorageService;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -109,7 +110,7 @@ class ProductService
     /**
      * Restore soft-deleted product
      */
-    public function restore(int $id): ?Product
+    public function restore(string $id): ?Product
     {
         return DB::transaction(function () use ($id) {
             $product = Product::withTrashed()->findOrFail($id);
@@ -127,16 +128,28 @@ class ProductService
     public function uploadImage(Product $product, $image): ?string
     {
         try {
-            $path = $image->store('products/' . $product->id, 's3');
+            // Use StorageService for upload with fallback
+            $storageService = app(StorageService::class);
+            
+            $result = $storageService->upload(
+                $image,
+                'products',
+                config('filesystems.default')
+            );
+            
+            if (!$result['success']) {
+                throw new \Exception('Failed to upload image');
+            }
             
             // Update product with image URL
             $product->update([
-                'image_url' => Storage::disk('s3')->url($path)
+                'image_url' => $result['url']
             ]);
             
             Log::info('Product image uploaded', [
                 'id' => $product->id,
-                'path' => $path
+                'path' => $result['path'],
+                'disk' => $result['disk']
             ]);
             
             return $product->image_url;
