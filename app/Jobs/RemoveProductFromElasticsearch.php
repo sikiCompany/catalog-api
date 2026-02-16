@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Product;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -49,20 +50,36 @@ class RemoveProductFromElasticsearch implements ShouldQueue
     public function handle(): void
     {
         try {
-            $product = Product::withTrashed()->find($this->productId);
-            
-            if ($product) {
-                $product->unsearchable();
-                
-                Log::info('Product removed from Elasticsearch', [
-                    'product_id' => $this->productId
-                ]);
-            } else {
-                Log::warning('Product not found for Elasticsearch removal', [
-                    'product_id' => $this->productId
-                ]);
+            $builder = ClientBuilder::create()
+                ->setHosts([config('elasticsearch.host')]);
+
+            if (config('elasticsearch.user')) {
+                $builder->setBasicAuthentication(
+                    config('elasticsearch.user'),
+                    config('elasticsearch.password')
+                );
             }
+
+            $client = $builder->build();
+            $indexName = 'products';
+
+            $client->delete([
+                'index' => $indexName,
+                'id' => $this->productId
+            ]);
+
+            Log::info('Product removed from Elasticsearch', [
+                'product_id' => $this->productId
+            ]);
         } catch (\Exception $e) {
+            // If document doesn't exist, it's not an error
+            if (strpos($e->getMessage(), 'not_found') !== false || strpos($e->getMessage(), '404') !== false) {
+                Log::info('Product not found in Elasticsearch (already removed)', [
+                    'product_id' => $this->productId
+                ]);
+                return;
+            }
+
             Log::error('Failed to remove product from Elasticsearch', [
                 'product_id' => $this->productId,
                 'error' => $e->getMessage(),

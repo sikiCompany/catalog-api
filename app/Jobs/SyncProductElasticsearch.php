@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Product;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -49,8 +50,26 @@ class SyncProductElasticsearch implements ShouldQueue
     public function handle(): void
     {
         try {
-            $this->product->searchable();
-            
+            $builder = ClientBuilder::create()
+                ->setHosts([config('elasticsearch.host')]);
+
+            if (config('elasticsearch.user')) {
+                $builder->setBasicAuthentication(
+                    config('elasticsearch.user'),
+                    config('elasticsearch.password')
+                );
+            }
+
+            $client = $builder->build();
+            $indexName = 'products';
+
+            $body = [
+                ['index' => ['_index' => $indexName, '_id' => $this->product->id]],
+                $this->product->toSearchableArray()
+            ];
+
+            $client->bulk(['body' => $body]);
+
             Log::info('Product synced to Elasticsearch', [
                 'product_id' => $this->product->id,
                 'sku' => $this->product->sku

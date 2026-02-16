@@ -187,15 +187,13 @@ class ProductTest extends TestCase
     }
 
     /**
-     * Test product has searchable trait
+     * Test product has toSearchableArray method
      */
-    public function test_product_uses_searchable_trait(): void
+    public function test_product_has_searchable_array_method(): void
     {
         $product = new Product();
         
-        $traits = class_uses($product);
-        
-        $this->assertContains('Laravel\Scout\Searchable', $traits);
+        $this->assertTrue(method_exists($product, 'toSearchableArray'));
     }
 
     /**
