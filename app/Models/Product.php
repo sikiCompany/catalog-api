@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, Searchable;
     protected static function boot()
     {
         parent::boot();
@@ -51,7 +52,7 @@ class Product extends Model
     public static function rules()
     {
         return [
-            'sku' => 'nullable|string|unique:products,sku',
+            'sku' => 'required|string|unique:products,sku',
             'name' => 'required|string|min:3',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
