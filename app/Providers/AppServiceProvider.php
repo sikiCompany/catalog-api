@@ -18,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
             $host = env('ELASTICSEARCH_HOST', 'elasticsearch');
             $port = env('ELASTICSEARCH_PORT', '9200');
             $scheme = env('ELASTICSEARCH_SCHEME', 'http');
-            
+
             return \Elastic\Elasticsearch\ClientBuilder::create()
                 ->setHosts(["{$scheme}://{$host}:{$port}"])
                 ->build();
@@ -35,6 +35,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (class_exists(\Laravel\Scout\EngineManager::class) && class_exists(\Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine::class)) {
+            $this->app->make(\Laravel\Scout\EngineManager::class)->extend('elasticsearch', function () {
+                return new \Matchish\ScoutElasticSearch\Engines\ElasticSearchEngine(app(\Elastic\Elasticsearch\Client::class));
+            });
+        }
+
         Product::observe(ProductObserver::class);
     }
 }

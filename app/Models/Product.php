@@ -6,10 +6,30 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($product) {
+            if (empty($product->sku)) {
+                $product->sku = self::generateUniqueSku();
+            }
+        });
+    }
+
+    protected static function generateUniqueSku(): string
+    {
+        do {
+            $sku = 'SKU-' . strtoupper(Str::random(8));
+        } while (self::where('sku', $sku)->exists());
+
+        return $sku;
+    }
 
     protected $fillable = [
         'sku',
@@ -31,7 +51,7 @@ class Product extends Model
     public static function rules()
     {
         return [
-            'sku' => 'required|string|unique:products,sku',
+            'sku' => 'nullable|string|unique:products,sku',
             'name' => 'required|string|min:3',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',

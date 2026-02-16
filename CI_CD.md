@@ -16,6 +16,7 @@ Documentação completa do pipeline CI/CD implementado com GitHub Actions.
 ## 🎯 Visão Geral
 
 O projeto utiliza **GitHub Actions** para automação de:
+
 - ✅ Testes automatizados
 - ✅ Análise de código (Lint)
 - ✅ Verificação de segurança
@@ -25,6 +26,7 @@ O projeto utiliza **GitHub Actions** para automação de:
 ### Triggers
 
 Os workflows são executados em:
+
 - **Push** para branches `main` e `develop`
 - **Pull Requests** para `main` e `develop`
 
@@ -77,7 +79,7 @@ Verifica qualidade e segurança do código.
 2. **Setup PHP 8.2** - Configura PHP
 3. **Install Dependencies** - Instala pacotes
 4. **Run Laravel Pint** - Verifica formatação
-5. **Security audit** - Verifica vulnerabilidades
+5. **Security audit** - Verifica vulnerabilidades #to-do
 
 #### Ferramentas
 
@@ -100,6 +102,7 @@ Verifica qualidade e segurança do código.
 ### Ambiente de Testes
 
 Os workflows usam:
+
 - **Ubuntu Latest** - Sistema operacional
 - **PHP 8.2** - Versão do PHP
 - **SQLite** - Banco para testes
@@ -109,9 +112,9 @@ Os workflows usam:
 ### Extensões PHP
 
 ```yaml
-extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, 
-           sqlite, pdo_sqlite, pdo_mysql, bcmath, soap, 
-           intl, gd, exif, iconv
+extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo,
+    sqlite, pdo_sqlite, pdo_mysql, bcmath, soap,
+    intl, gd, exif, iconv
 ```
 
 ---
@@ -127,6 +130,7 @@ Configure no GitHub: `Settings > Secrets and variables > Actions`
 Token para upload de cobertura de código.
 
 **Como obter:**
+
 1. Acesse [codecov.io](https://codecov.io)
 2. Conecte seu repositório
 3. Copie o token
@@ -142,6 +146,7 @@ AWS_BUCKET
 ```
 
 **Como obter:**
+
 1. Acesse AWS IAM Console
 2. Crie um usuário com permissões S3
 3. Gere Access Key
@@ -174,6 +179,7 @@ php artisan queue:restart
 ### Deploy Automático (Futuro)
 
 Workflow de deploy será adicionado para:
+
 - Deploy em staging (branch develop)
 - Deploy em produção (branch main)
 - Rollback automático em caso de falha
@@ -211,6 +217,7 @@ Adicione badges ao README.md:
 **Problema**: Testes falham no CI mas passam localmente
 
 **Soluções**:
+
 1. Verifique versão do PHP
 2. Verifique extensões instaladas
 3. Limpe cache: `php artisan config:clear`
@@ -221,6 +228,7 @@ Adicione badges ao README.md:
 **Problema**: MySQL/Redis/Elasticsearch não conectam
 
 **Soluções**:
+
 1. Verifique health checks nos services
 2. Aumente timeout de health check
 3. Verifique portas configuradas
@@ -231,6 +239,7 @@ Adicione badges ao README.md:
 **Problema**: Laravel Pint encontra problemas
 
 **Soluções**:
+
 1. Execute localmente: `./vendor/bin/pint`
 2. Corrija automaticamente: `./vendor/bin/pint`
 3. Commit as correções
@@ -240,6 +249,7 @@ Adicione badges ao README.md:
 **Problema**: Cobertura abaixo de 80%
 
 **Soluções**:
+
 1. Adicione mais testes
 2. Remova código não testado
 3. Ajuste threshold se necessário

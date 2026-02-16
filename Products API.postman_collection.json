@@ -20,7 +20,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Notebook Dell\",\n  \"description\": \"Notebook i7, 16GB RAM\",\n  \"price\": 4500.90,\n  \"stock\": 10,\n  \"category\": \"Informática\",\n  \"active\": true\n}"
+          "raw": "{\n  \"name\": \"Notebook ACER\",\n  \"description\": \"Notebook i7, 16GB RAM cassio\",\n  \"price\": 4500.90,\n  \"category\": \"Informática\",\n  \"status\": \"active\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/products",
@@ -66,7 +66,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Notebook Dell Atualizado\",\n  \"description\": \"Notebook i7, 16GB RAM, SSD 1TB\",\n  \"price\": 4800.00,\n  \"stock\": 8,\n  \"category\": \"Informática\",\n  \"active\": true\n}"
+          "raw": "{\n  \"name\": \"Notebook TT Dell Atualizado\",\n  \"description\": \"Notebook i7, 16GB RAM, SSD 1TB\",\n  \"price\": 4800.00,\n  \"stock\": 8,\n  \"category\": \"Informática\",\n  \"active\": true\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/products/{{productId}}",
@@ -102,12 +102,32 @@
       "response": []
     },
     {
+      "name": "Restore delete product",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/products/{{productId}}/restore",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "products",
+            "{{productId}}",
+            "restore"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "List products (paged & filtered)",
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/products?page={{page}}&size={{size}}&sort={{sort}}&name={{nameFilter}}&category={{categoryFilter}}&minPrice={{minPrice}}&maxPrice={{maxPrice}}&active={{active}}",
+          "raw": "{{baseUrl}}/api/products?page={{page}}&size={{size}}&sort={{sort}}&name={{nameFilter}}&active={{active}}",
           "host": [
             "{{baseUrl}}"
           ],
@@ -134,15 +154,18 @@
             },
             {
               "key": "category",
-              "value": "{{categoryFilter}}"
+              "value": "{{categoryFilter}}",
+              "disabled": true
             },
             {
               "key": "minPrice",
-              "value": "{{minPrice}}"
+              "value": "{{minPrice}}",
+              "disabled": true
             },
             {
               "key": "maxPrice",
-              "value": "{{maxPrice}}"
+              "value": "{{maxPrice}}",
+              "disabled": true
             },
             {
               "key": "active",

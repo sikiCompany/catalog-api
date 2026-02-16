@@ -21,10 +21,10 @@ Content-Type: application/json
 }
 
 ### Buscar produto por ID
-GET http://localhost/api/products/1
+GET http://localhost/api/products/[id]
 
 ### Atualizar produto
-PUT http://localhost/api/products/1
+PUT http://localhost/api/products/[id]
 Content-Type: application/json
 
 {
@@ -33,10 +33,10 @@ Content-Type: application/json
 }
 
 ### Deletar produto (soft delete)
-DELETE http://localhost/api/products/1
+DELETE http://localhost/api/products/[id]
 
 ### Restaurar produto
-POST http://localhost/api/products/1/restore
+POST http://localhost/api/products/[id]/restore
 
 ### Upload de imagem (AWS S3)
-POST http://localhost/api/products/1/image
+POST http://localhost/api/products/[id]/image
